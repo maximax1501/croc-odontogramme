@@ -3,10 +3,12 @@
 Outil web pour rédiger des comptes rendus dentaires clairs et illustrés pour les propriétaires de chiens, chats et lapins.
 
 - **Odontogramme** par espèce (numérotation de Triadan modifiée) : chien 42 dents, chat 30, lapin 28.
+- **Repères anatomiques** : en tête du compte rendu, l'illustration de la dentition de l'espèce et le rôle de chaque famille de dents ; dans le PDF, elle se cale dans la place libre de la première page.
 - **Plusieurs constats par dent** (tartre, gingivite, parodontite, fracture, résorption…) avec intensité ou stade, et plusieurs soins.
 - **Radiographies** : réglage luminosité/contraste, négatif, annotations ; une radio associée à une dent apparaît dans sa ligne du compte rendu.
 - **Photos avant / après** avec comparateur à curseur.
 - **Historique des patients** : visites regroupées par animal, nouvelle visite (les dents extraites sont reportées comme absentes).
+- **Logo** : le logo HOPia figure par défaut en tête du compte rendu ; une clinique peut le remplacer par le sien dans « Clinique & vétérinaire ».
 - **Export PDF** A4 et export/import du dossier en `.json` (images comprises).
 
 ## Lancer en local
