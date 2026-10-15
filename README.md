@@ -25,17 +25,18 @@ Puis ouvrir http://localhost:8765/index.html
 
 Déployé sur Railway : https://croc-production.up.railway.app
 
-Le `Dockerfile` lance `server.js` (Node), qui sert `index.html` et enregistre les comptes rendus dans `/data`, un volume Railway : ils survivent aux redéploiements. On y accède avec un compte (e-mail et mot de passe) ; tous les comptes partagent les mêmes comptes rendus. Pour redéployer :
+Le `Dockerfile` lance `server.js` (Node), qui sert `index.html` et enregistre les comptes rendus dans `/data`, un volume Railway : ils survivent aux redéploiements. On y accède avec un mot de passe unique, celui de la variable `CROC_PASSWORD`. Pour redéployer :
 
 ```bash
 railway up --service croc
 ```
 
-## Comptes
+## Accès
 
-- **Premier compte** : à la première ouverture, le site propose de créer le premier compte. Il demande le code d'installation défini dans la variable `CROC_SETUP_CODE` (ou, à défaut, `CROC_PASSWORD`) ; sans variable, ce premier compte est libre.
-- **Comptes suivants** : sur invitation seulement. Un membre connecté clique sur son nom en haut à droite, puis « Créer un lien d'invitation » : le lien est valable 7 jours, pour une personne.
-- Les sessions durent 30 jours. Après 10 mauvais mots de passe, une adresse IP doit patienter un quart d'heure.
+- Le site s'ouvre sur un écran de connexion qui demande le mot de passe défini dans la variable Railway `CROC_PASSWORD` (sans cette variable, le site est ouvert à tous).
+- On reste connecté 30 jours sur l'appareil ; « Se déconnecter » en haut à droite.
+- Changer `CROC_PASSWORD` dans Railway déconnecte tout le monde.
+- Après 10 mauvais mots de passe, une adresse IP doit patienter un quart d'heure.
 
 ## Données
 
