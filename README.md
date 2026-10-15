@@ -13,10 +13,10 @@ Outil web pour rédiger des comptes rendus dentaires clairs et illustrés pour l
 
 ## Lancer en local
 
-Tout tient dans `index.html`, sans dépendance à installer.
+Il faut Node 18 ou plus récent, sans dépendance à installer.
 
 ```bash
-python3 -m http.server 8765
+PORT=8765 node server.js
 ```
 
 Puis ouvrir http://localhost:8765/index.html
@@ -25,7 +25,7 @@ Puis ouvrir http://localhost:8765/index.html
 
 Déployé sur Railway : https://croc-production.up.railway.app
 
-Le `Dockerfile` sert `index.html` avec Caddy sur le port fourni par Railway. Pour redéployer :
+Le `Dockerfile` lance `server.js` (Node), qui sert `index.html` et enregistre les comptes rendus dans `/data`, un volume Railway : ils survivent aux redéploiements. La variable `CROC_PASSWORD`, si elle est définie, protège tout le site par un mot de passe. Pour redéployer :
 
 ```bash
 railway up --service croc
@@ -33,6 +33,8 @@ railway up --service croc
 
 ## Données
 
-Dans cette version autonome, les dossiers sont enregistrés dans le navigateur (IndexedDB), sur l'appareil utilisé. Pensez à exporter régulièrement les comptes rendus importants.
+Les comptes rendus, leurs images et les informations de la clinique sont enregistrés sur le serveur (`DATA_DIR`, par défaut `./data`) : on les retrouve depuis n'importe quel appareil. À la première ouverture, les dossiers déjà enregistrés dans le navigateur y sont recopiés.
+
+Si `index.html` est servi sans `server.js` (simple serveur de fichiers), le site revient à l'enregistrement dans le navigateur (IndexedDB).
 
 Les polices viennent de Google Fonts ; l'export PDF charge html2canvas et jsPDF depuis cdnjs à la première utilisation.

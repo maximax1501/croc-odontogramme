@@ -1718,9 +1718,10 @@ function summaryOf(r){
 }
 const assetIds = r => [...r.xrays.map(x => x.asset), ...r.pairs.flatMap(p => [p.before && p.before.asset, p.after && p.after.asset])].filter(Boolean);
 
-/* Trois stockages, une seule interface :
+/* Quatre stockages, une seule interface :
    - cloud : base de données de l'artifact + fichiers (images), partagés entre appareils ;
-   - local : IndexedDB du navigateur (version autonome du site) ;
+   - server : serveur du site (server.js), partagé entre appareils ;
+   - local : IndexedDB du navigateur (site servi sans serveur Croc) ;
    - memory : secours si le navigateur refuse tout stockage. */
 function cloudStore(db, assets){
   return {
@@ -1738,6 +1739,64 @@ function cloudStore(db, assets){
     },
     dropImage: id => (assets && id) ? assets.delete(id).catch(() => {}) : Promise.resolve(),
   };
+}
+function serverStore(){
+  const req = async (method, url, body, type) => {
+    const opt = {method, headers:{}, credentials:'same-origin'};
+    if (body !== undefined){ opt.body = type ? body : JSON.stringify(body); opt.headers['Content-Type'] = type || 'application/json'; }
+    const res = await fetch(url, opt);
+    if (!res.ok){
+      const code = res.status === 413 ? 'too_big' : res.status === 401 || res.status === 403 ? 'not_granted' : 'server_' + res.status;
+      throw {code};
+    }
+    return res.json();
+  };
+  const subs = new Set();
+  const refresh = () => req('GET', '/api/summaries').then(all => subs.forEach(f => f(all)));
+  // Les dossiers ouverts sur un autre appareil apparaissent au retour sur la page
+  window.addEventListener('focus', () => { if (subs.size) refresh().catch(() => {}); });
+  return {
+    kind:'server',
+    ready:req('GET', '/api/health'),
+    watch(cb, onErr){ subs.add(cb); refresh().catch(onErr); return () => subs.delete(cb); },
+    get: id => req('GET', '/api/reports/' + id).catch(e => { if (e.code === 'server_404') return null; throw e; }),
+    async save(r, sum){ await req('PUT', '/api/reports/' + r.id, {report:serialize(r), summary:sum}); refresh().catch(() => {}); },
+    async remove(id){ await req('DELETE', '/api/reports/' + id); refresh().catch(() => {}); },
+    getClinic: () => req('GET', '/api/settings/clinic').then(d => d.value),
+    saveClinic: c => req('PUT', '/api/settings/clinic', serialize(c)),
+    async putImage(im){
+      if (!im || !im.src || !im.src.startsWith('data:')) return im;
+      const r = await req('POST', '/_blob', dataURLtoBlob(im.src), (/data:([^;,]+)/.exec(im.src) || [])[1] || 'image/jpeg')
+        .catch(e => { throw e.code === 'too_big' ? {code:'too_large'} : e; });
+      return {src:r.url, asset:r.id, w:im.w, h:im.h};
+    },
+    dropImage: id => id ? fetch('/_blob/' + id, {method:'DELETE', credentials:'same-origin'}).catch(() => {}) : Promise.resolve(),
+  };
+}
+// Premier passage sur le serveur : on y recopie les dossiers déjà enregistrés dans ce navigateur
+async function migrateLocalToServer(){
+  if (store.kind !== 'server' || LS.get('croc.server.migrated')) return;
+  let local;
+  try { local = idbStore(); await local.ready; } catch (e) { LS.set('croc.server.migrated', true); return; }
+  try {
+    const sums = await new Promise((res, rej) => local.watch(res, rej));
+    if (!sums.length){ LS.set('croc.server.migrated', true); return; }
+    const onServer = new Set((await new Promise((res, rej) => store.watch(res, rej))).map(s => s.id));
+    let n = 0;
+    for (const s of sums){
+      if (onServer.has(s.id)) continue;
+      const d = await local.get(s.id);
+      if (!d) continue;
+      const r = migrateReport(d);
+      const up = async im => im ? Object.assign(im, await store.putImage({src:im.src, w:im.w, h:im.h})) : im;
+      for (const x of r.xrays) await up(x);
+      for (const p of r.pairs){ p.before = await up(p.before); p.after = await up(p.after); }
+      await store.save(r, summaryOf(r)); n++;
+    }
+    if (!clinic.name){ const c = await local.getClinic(); if (c && c.name){ const cc = normClinic(c); if (cc.logo) cc.logo = await store.putImage(cc.logo).catch(() => null); clinic = cc; await store.saveClinic(clinic); } }
+    LS.set('croc.server.migrated', true);
+    if (n) toast(`${n} compte${n > 1 ? 's' : ''} rendu${n > 1 ? 's' : ''} de ce navigateur enregistré${n > 1 ? 's' : ''} sur le site`);
+  } catch (e) { console.warn('Copie des dossiers locaux vers le serveur impossible', e); }
 }
 function idbStore(){
   let dbp = null;
@@ -1778,6 +1837,7 @@ function memStore(){
   };
 }
 const STORE_NOTE = {
+  server:"Comptes rendus enregistrés sur le site : vous les retrouvez depuis n'importe quel appareil.",
   cloud:"Dossiers enregistrés dans cet artifact : vous les retrouvez sur tous vos appareils. Seules les personnes à qui vous donnez un accès Contributeur ou Éditeur peuvent les consulter.",
   local:"Dossiers enregistrés dans ce navigateur, sur cet appareil. Exportez régulièrement les comptes rendus importants.",
   memory:"Le navigateur refuse le stockage : les comptes rendus seront perdus à la fermeture de la page. Exportez-les avant de partir.",
@@ -1930,7 +1990,7 @@ function patientHTML(g){
 function renderHome(){
   const el = $('#patientList'), stats = $('#homeStats'), note = $('#storeNote');
   note.textContent = store ? STORE_NOTE[store.kind] : '';
-  note.classList.toggle('warn', !!store && store.kind !== 'cloud');
+  note.classList.toggle('warn', !!store && store.kind !== 'cloud' && store.kind !== 'server');
   if (!ui.loaded){
     stats.textContent = ui.loadErr ? "Les dossiers n'ont pas pu être chargés." : 'Chargement des dossiers…';
     el.innerHTML = ui.loadErr ? `<div class="empty"><h2>Chargement impossible</h2><p>Rechargez la page. Si le problème persiste, vérifiez votre connexion.</p></div>` : `<div class="empty"><div class="spinner dark"></div></div>`;
@@ -2452,10 +2512,12 @@ let rzT; window.addEventListener('resize', () => { clearTimeout(rzT); rzT = setT
     const [db, as] = await Promise.all([window.claude.use('db').catch(() => null), window.claude.use('assets').catch(() => null)]);
     if (db) st = cloudStore(db, as);
   }
+  if (!st && location.protocol.startsWith('http')){ try { const s1 = serverStore(); await s1.ready; st = s1; } catch (e) {} }
   if (!st){ try { const s2 = idbStore(); await s2.ready; st = s2; } catch (e) { st = memStore(); } }
   store = st;
   try { clinic = normClinic(await store.getClinic()); } catch (e) {}
   await migrateV1();
+  await migrateLocalToServer();
   store.watch(list => { summaries = list; ui.loaded = true; ui.loadErr = false; if (ui.view === 'home') renderHome(); },
     () => { ui.loadErr = true; if (ui.view === 'home') renderHome(); });
   renderHome();
