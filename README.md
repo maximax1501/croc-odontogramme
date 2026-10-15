@@ -21,6 +21,16 @@ python3 -m http.server 8765
 
 Puis ouvrir http://localhost:8765/index.html
 
+## En ligne
+
+Déployé sur Railway : https://croc-production.up.railway.app
+
+Le `Dockerfile` sert `index.html` avec Caddy sur le port fourni par Railway. Pour redéployer :
+
+```bash
+railway up --service croc
+```
+
 ## Données
 
 Dans cette version autonome, les dossiers sont enregistrés dans le navigateur (IndexedDB), sur l'appareil utilisé. Pensez à exporter régulièrement les comptes rendus importants.
