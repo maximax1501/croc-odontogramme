@@ -76,6 +76,27 @@ a{color:var(--accent)}
 .seg button[aria-selected="true"],.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08),0 0 0 1px var(--line)}
 .seg.sm button{padding:5px 11px;font-size:13px}
 
+/* ---------- Compte ---------- */
+.acct{gap:8px;padding-inline:6px 10px}
+.acct-ini{width:26px;height:26px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:inline-grid;place-items:center;font:700 11.5px/1 var(--f-body);letter-spacing:.02em;flex:none}
+.acct-name{max-width:16ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media (max-width:640px){.acct-name{display:none}}
+.auth{position:fixed;inset:0;z-index:90;background:var(--bg);overflow-y:auto;display:flex;align-items:center;justify-content:center;padding:calc(24px + env(safe-area-inset-top,0px)) 16px calc(24px + env(safe-area-inset-bottom,0px))}
+.auth-card{width:min(400px,100%);background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow-sm);padding:30px 28px 26px}
+@media (max-width:520px){.auth-card{padding:24px 18px 20px}}
+.auth-brand{display:flex;align-items:center;gap:10px;margin-bottom:22px}
+.auth-brand .brand-mark{width:34px;height:34px}
+.auth-card h1{font:800 28px/1.1 var(--f-display);letter-spacing:-.03em;margin:0}
+.auth-card .sub{margin:8px 0 20px;color:var(--ink-2)}
+.auth-form{display:grid;gap:14px}
+.auth-form .btn-primary{width:100%;padding:11px 14px;font-size:15px;margin-top:4px}
+.auth-err{margin:0;padding:9px 12px;border-radius:10px;background:var(--danger-soft);color:var(--danger);font-size:13.5px}
+.auth-alt{margin:18px 0 0;padding-top:16px;border-top:1px solid var(--line);font-size:13.5px;color:var(--ink-2);text-align:center}
+.link-btn{border:0;background:none;padding:0;color:var(--accent);font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.invite-box{display:grid;gap:8px;margin:0 0 18px;padding:14px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line)}
+.invite-row{display:flex;gap:8px}
+.invite-row input{font:13px var(--f-mono)}
+
 /* ---------- Boutons, champs ---------- */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:9px 14px;border-radius:11px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink);font-weight:600;font-size:14px;line-height:1.2;cursor:pointer;text-decoration:none;transition:background .15s,border-color .15s,color .15s}
 .btn:hover{border-color:var(--ink-3)}
@@ -94,7 +115,7 @@ a{color:var(--accent)}
 .field.span2{grid-column:span 2}
 @media (max-width:520px){.field.span2{grid-column:auto}}
 .lbl,.field>label{font-size:12.5px;font-weight:600;color:var(--ink-2)}
-input[type=text],input[type=date],input[type=tel],input[type=email],select,textarea{width:100%;min-width:0;padding:9px 12px;border:1px solid var(--line-2);border-radius:10px;background:var(--surface);color:var(--ink);font:inherit;font-size:14.5px;transition:border-color .15s,box-shadow .15s}
+input[type=text],input[type=date],input[type=tel],input[type=email],input[type=password],select,textarea{width:100%;min-width:0;padding:9px 12px;border:1px solid var(--line-2);border-radius:10px;background:var(--surface);color:var(--ink);font:inherit;font-size:14.5px;transition:border-color .15s,box-shadow .15s}
 input::placeholder,textarea::placeholder{color:var(--ink-3)}
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-ring)}
 textarea{resize:vertical;line-height:1.55}
@@ -538,8 +559,10 @@ input[type=search]:focus{outline:none;border-color:var(--accent);box-shadow:0 0 
       <span class="save-state" id="saveState" role="status"></span>
       <button type="button" class="btn btn-sm" data-act="exportFile" title="Télécharger une copie du dossier (.json), images comprises">Exporter</button>
     </div>
+    <button type="button" class="btn btn-ghost btn-sm acct" id="acctBtn" data-act="account" hidden></button>
   </div>
 </header>
+<div class="auth" id="auth" hidden></div>
 
 <div id="view-home" class="wrap home" role="region" aria-labelledby="h-home">
   <div class="home-head">
@@ -1740,11 +1763,121 @@ function cloudStore(db, assets){
     dropImage: id => (assets && id) ? assets.delete(id).catch(() => {}) : Promise.resolve(),
   };
 }
+/* =========================================================
+   Comptes (site servi par server.js)
+   ========================================================= */
+async function api(method, url, body){
+  const res = await fetch(url, {method, credentials:'same-origin', headers:body ? {'Content-Type':'application/json'} : {}, body:body ? JSON.stringify(body) : undefined});
+  const d = await res.json().catch(() => ({}));
+  if (!res.ok) throw {code:d.error || 'server_' + res.status, status:res.status};
+  return d;
+}
+const AUTH_ERR = {
+  bad_credentials:'Adresse e-mail ou mot de passe incorrect.',
+  bad_invite:"Ce lien d'invitation n'est plus valable : demandez-en un nouveau.",
+  email_taken:'Un compte existe déjà avec cette adresse : connectez-vous.',
+  weak_password:'Choisissez un mot de passe d\u2019au moins 8 caractères.',
+  invalid_fields:'Vérifiez votre nom et votre adresse e-mail.',
+  rate_limited:'Trop d\u2019essais : patientez un quart d\u2019heure avant de réessayer.',
+};
+const initials = n => (n || '?').split(/[\s-]+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
+function renderAccount(){
+  const b = $('#acctBtn');
+  b.hidden = !ui.user;
+  if (ui.user) b.innerHTML = `<span class="acct-ini" aria-hidden="true">${esc(initials(ui.user.name))}</span><span class="acct-name">${esc(ui.user.name)}</span>`;
+  b.setAttribute('aria-label', ui.user ? `Compte de ${ui.user.name}` : '');
+}
+let authDone = null;
+// Affiche l'écran de connexion ; la promesse rend l'utilisateur une fois connecté
+function showAuth(st){
+  const invite = st.invite || '';
+  let mode = st.needsSetup ? 'setup' : st.inviteValid ? 'signup' : 'login';
+  const el = $('#auth'), mark = $('.brand .brand-mark').outerHTML;
+  const field = (id, label, type, ac, extra = '') => `<div class="field"><label for="${id}">${label}</label><input type="${type}" id="${id}" name="${id}" autocomplete="${ac}" required ${extra}></div>`;
+  const render = (err = '') => {
+    const T = {
+      login:['Connexion', 'Retrouvez les comptes rendus de l\u2019équipe.', 'Se connecter'],
+      signup:['Créer votre compte', 'Vous avez été invité à rejoindre l\u2019équipe sur Croc.', 'Créer mon compte'],
+      setup:['Premier compte', 'Créez le compte qui ouvrira Croc à votre équipe. Vous inviterez ensuite vos collègues depuis le site.', 'Créer le compte'],
+    }[mode];
+    const isNew = mode !== 'login';
+    el.innerHTML = `<div class="auth-card" role="main">
+      <div class="auth-brand">${mark}<span class="brand-name">Croc</span></div>
+      <h1 id="authT">${T[0]}</h1><p class="sub">${T[1]}</p>
+      <form class="auth-form" id="authForm" aria-labelledby="authT" novalidate>
+        ${err ? `<p class="auth-err" role="alert">${esc(err)}</p>` : ''}
+        ${isNew ? field('aName', 'Nom', 'text', 'name', 'placeholder="Dr Claire Martin"') : ''}
+        ${field('aEmail', 'Adresse e-mail', 'email', 'email')}
+        ${field('aPass', isNew ? 'Mot de passe <span class="hint" style="display:inline;font-weight:400">· 8 caractères minimum</span>' : 'Mot de passe', 'password', isNew ? 'new-password' : 'current-password', isNew ? 'minlength="8"' : '')}
+        ${mode === 'setup' && st.setupCode ? field('aCode', 'Code d\u2019installation', 'password', 'off') + '<p class="hint" style="margin-top:-6px">C\u2019est le mot de passe qui protégeait le site jusqu\u2019ici.</p>' : ''}
+        <button type="submit" class="btn btn-primary">${T[2]}</button>
+      </form>
+      ${mode === 'login' ? `<p class="auth-alt">Pas encore de compte ? Demandez un lien d\u2019invitation à un membre de l\u2019équipe.</p>`
+        : mode === 'signup' ? `<p class="auth-alt">Déjà un compte ? <button type="button" class="link-btn" id="authSwitch">Se connecter</button></p>` : ''}
+    </div>`;
+    const sw = $('#authSwitch'); if (sw) sw.onclick = () => { mode = 'login'; render(); };
+    $('#authForm').onsubmit = submit;
+    const first = el.querySelector('input'); if (first) first.focus();
+  };
+  async function submit(e){
+    e.preventDefault();
+    const v = id => { const i = $('#' + id); return i ? i.value : ''; };
+    const btn = e.target.querySelector('button[type=submit]');
+    if (mode !== 'login' && !v('aName').trim()) return render('Indiquez votre nom.');
+    if (!v('aEmail').trim() || !v('aPass')) return render('Indiquez votre adresse e-mail et votre mot de passe.');
+    btn.disabled = true;
+    try {
+      const r = mode === 'login'
+        ? await api('POST', '/api/auth/login', {email:v('aEmail'), password:v('aPass')})
+        : await api('POST', '/api/auth/signup', {name:v('aName'), email:v('aEmail'), password:v('aPass'), invite:mode === 'setup' ? v('aCode') : invite});
+      el.hidden = true; el.innerHTML = '';
+      if (invite) history.replaceState(null, '', location.pathname + location.hash);
+      const done = authDone; authDone = null; done(r.user);
+    } catch (err) {
+      const keep = {email:v('aEmail'), name:v('aName')};
+      render(err.code === 'bad_invite' && mode === 'setup' ? 'Code d\u2019installation incorrect.' : AUTH_ERR[err.code] || 'Connexion au serveur impossible. Réessayez.');
+      if ($('#aEmail')) $('#aEmail').value = keep.email;
+      if ($('#aName')) $('#aName').value = keep.name;
+      if (keep.email) $('#aPass').focus();
+    }
+  }
+  return new Promise(res => { authDone = res; el.hidden = false; render(st.invite && !st.inviteValid && !st.needsSetup ? "Ce lien d'invitation n'est plus valable : connectez-vous ou demandez-en un nouveau." : ''); });
+}
+function openAccount(){
+  const u = ui.user; if (!u) return;
+  openModal(`<div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlgT">
+    <h3 id="dlgT">${esc(u.name)}</h3><p>${esc(u.email)}</p>
+    <div class="invite-box" id="inviteBox">
+      <strong>Inviter un collègue</strong>
+      <p class="hint">Il pourra créer son compte et verra tous les comptes rendus de l\u2019équipe.</p>
+      <div><button type="button" class="btn btn-sm" data-act="makeInvite">Créer un lien d\u2019invitation</button></div>
+    </div>
+    <div class="dialog-actions"><button type="button" class="btn btn-ghost btn-danger" data-act="logout">Se déconnecter</button><button type="button" class="btn" data-act="closeModal">Fermer</button></div>
+  </div>`);
+}
+async function makeInvite(btn){
+  btn.disabled = true;
+  try {
+    const r = await api('POST', '/api/auth/invite');
+    const url = `${location.origin}${location.pathname}?invite=${r.token}`;
+    $('#inviteBox').innerHTML = `<strong>Lien d\u2019invitation</strong>
+      <div class="invite-row"><input type="text" id="inviteUrl" readonly value="${esc(url)}" aria-label="Lien d'invitation"><button type="button" class="btn btn-sm btn-primary" data-act="copyInvite">Copier</button></div>
+      <p class="hint">Valable 7 jours, pour une seule personne. Envoyez-le par e-mail ou par message.</p>`;
+    $('#inviteUrl').select();
+  } catch (e) { btn.disabled = false; toast("Le lien n'a pas pu être créé. Réessayez."); }
+}
+async function logout(){
+  await flush();
+  try { await api('POST', '/api/auth/logout'); } catch (e) {}
+  location.reload();
+}
+
 function serverStore(){
   const req = async (method, url, body, type) => {
     const opt = {method, headers:{}, credentials:'same-origin'};
     if (body !== undefined){ opt.body = type ? body : JSON.stringify(body); opt.headers['Content-Type'] = type || 'application/json'; }
     const res = await fetch(url, opt);
+    if (res.status === 401) reconnect();
     if (!res.ok){
       const code = res.status === 413 ? 'too_big' : res.status === 401 || res.status === 403 ? 'not_granted' : 'server_' + res.status;
       throw {code};
@@ -1756,8 +1889,7 @@ function serverStore(){
   // Les dossiers ouverts sur un autre appareil apparaissent au retour sur la page
   window.addEventListener('focus', () => { if (subs.size) refresh().catch(() => {}); });
   return {
-    kind:'server',
-    ready:req('GET', '/api/health'),
+    kind:'server', refresh,
     watch(cb, onErr){ subs.add(cb); refresh().catch(onErr); return () => subs.delete(cb); },
     get: id => req('GET', '/api/reports/' + id).catch(e => { if (e.code === 'server_404') return null; throw e; }),
     async save(r, sum){ await req('PUT', '/api/reports/' + r.id, {report:serialize(r), summary:sum}); refresh().catch(() => {}); },
@@ -1772,6 +1904,12 @@ function serverStore(){
     },
     dropImage: id => id ? fetch('/_blob/' + id, {method:'DELETE', credentials:'same-origin'}).catch(() => {}) : Promise.resolve(),
   };
+}
+// Session expirée : on redemande la connexion par-dessus la page, sans rien perdre de l'écran
+function reconnect(){
+  if (authDone) return;
+  ui.user = null; renderAccount(); closeModal();
+  showAuth({}).then(u => { ui.user = u; renderAccount(); toast('Vous êtes reconnecté'); if (state) save(); store.refresh().catch(() => {}); });
 }
 // Premier passage sur le serveur : on y recopie les dossiers déjà enregistrés dans ce navigateur
 async function migrateLocalToServer(){
@@ -1837,7 +1975,7 @@ function memStore(){
   };
 }
 const STORE_NOTE = {
-  server:"Comptes rendus enregistrés sur le site : vous les retrouvez depuis n'importe quel appareil.",
+  server:"Comptes rendus enregistrés sur le site et partagés avec toute l'équipe : vous les retrouvez depuis n'importe quel appareil.",
   cloud:"Dossiers enregistrés dans cet artifact : vous les retrouvez sur tous vos appareils. Seules les personnes à qui vous donnez un accès Contributeur ou Éditeur peuvent les consulter.",
   local:"Dossiers enregistrés dans ce navigateur, sur cet appareil. Exportez régulièrement les comptes rendus importants.",
   memory:"Le navigateur refuse le stockage : les comptes rendus seront perdus à la fermeture de la page. Exportez-les avant de partir.",
@@ -2391,6 +2529,10 @@ const ACTIONS = {
   toothX: () => { const i = $('#toothXFile'); if (i) i.click(); },
   confirmOk: () => { const cb = confirmCb; confirmCb = null; closeModal(); if (cb) cb(); },
   closeModal,
+  account: openAccount,
+  makeInvite,
+  copyInvite: () => { const i = $('#inviteUrl'); i.select(); (navigator.clipboard ? navigator.clipboard.writeText(i.value) : Promise.reject()).then(() => toast('Lien copié'), () => { document.execCommand('copy'); toast('Lien copié'); }); },
+  logout,
   pdf: exportPDF,
   print: () => { renderReport(); window.print(); },
   nums: () => { ui.nums = !ui.nums; saveUI(); renderChart(); },
@@ -2512,7 +2654,16 @@ let rzT; window.addEventListener('resize', () => { clearTimeout(rzT); rzT = setT
     const [db, as] = await Promise.all([window.claude.use('db').catch(() => null), window.claude.use('assets').catch(() => null)]);
     if (db) st = cloudStore(db, as);
   }
-  if (!st && location.protocol.startsWith('http')){ try { const s1 = serverStore(); await s1.ready; st = s1; } catch (e) {} }
+  if (!st && location.protocol.startsWith('http')){
+    const invite = new URLSearchParams(location.search).get('invite') || '';
+    const auth = await api('GET', '/api/auth/state' + (invite ? '?invite=' + encodeURIComponent(invite) : '')).catch(() => null);
+    if (auth && 'user' in auth){
+      if (auth.user && invite) history.replaceState(null, '', location.pathname + location.hash);
+      ui.user = auth.user || await showAuth(Object.assign(auth, {invite}));
+      renderAccount();
+      st = serverStore();
+    }
+  }
   if (!st){ try { const s2 = idbStore(); await s2.ready; st = s2; } catch (e) { st = memStore(); } }
   store = st;
   try { clinic = normClinic(await store.getClinic()); } catch (e) {}
