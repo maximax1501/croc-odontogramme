@@ -239,10 +239,10 @@ details.clinic .fields{margin-top:14px}
 .xtools{display:flex;justify-content:space-between;gap:6px}
 
 .pairs{display:grid;gap:16px;margin-top:16px}
-.pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:16px;border:1px solid var(--line);border-radius:16px;padding:14px;background:var(--surface-2)}
-@media (max-width:860px){.pair{grid-template-columns:minmax(0,1fr)}}
-.pair-left{display:grid;gap:10px;align-content:start}
-.pair-slots{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pair{display:grid;gap:12px;border:1px solid var(--line);border-radius:16px;padding:14px;background:var(--surface-2)}
+.pair-slots{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+.pair-foot{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.pair-foot input{flex:1 1 240px;min-width:0}
 .slot{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;aspect-ratio:4/3;max-width:100%;border:1.5px dashed var(--line-2);border-radius:12px;background:var(--surface);cursor:pointer;overflow:hidden;text-align:center;font-size:12.5px;color:var(--ink-2);padding:8px}
 .slot:hover,.slot.over{border-color:var(--accent);background:var(--accent-soft)}
 .slot.filled{border-style:solid;padding:0;background:#000}
@@ -250,19 +250,11 @@ details.clinic .fields{margin-top:14px}
 .slot-tag{position:absolute;left:8px;top:8px;font:500 10.5px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;padding:3px 7px;border-radius:6px;background:var(--ink);color:var(--bg);z-index:1}
 .slot.filled .slot-tag{background:rgba(0,0,0,.6);color:#fff}
 .slot svg{width:24px;height:24px;color:var(--accent)}
+.slot .marks{width:100%;height:100%}
+.slot-mark{position:absolute;right:6px;bottom:6px;z-index:2;display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 11px;border-radius:999px;border:0;background:rgba(0,0,0,.62);color:#fff;font:600 12.5px var(--f-body);cursor:pointer}
+.slot-mark:hover{background:rgba(0,0,0,.8)}
+.slot-mark i{width:12px;height:12px;border-radius:50%;border:2px solid #FFD23F}
 .slot-x{position:absolute;right:6px;top:6px;z-index:2;width:28px;height:28px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;cursor:pointer;font-size:16px;line-height:1}
-.pair-right{display:flex;flex-direction:column;gap:8px;min-width:0}
-.pair-empty{flex:1;display:flex;align-items:center;justify-content:center;text-align:center;border-radius:12px;background:var(--surface);border:1px solid var(--line);color:var(--ink-3);font-size:13.5px;padding:20px;min-height:160px}
-
-.ba{position:relative;overflow:hidden;border-radius:12px;background:#111;width:100%;max-width:100%;touch-action:pan-y}
-.ba img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
-.ba-before{position:absolute;inset:0;clip-path:inset(0 calc(100% - var(--pos,50%)) 0 0)}
-.ba-handle{position:absolute;top:0;bottom:0;left:var(--pos,50%);width:2px;background:#fff;transform:translateX(-1px);box-shadow:0 0 0 1px rgba(0,0,0,.15);pointer-events:none}
-.ba-handle span{position:absolute;top:50%;left:50%;width:38px;height:38px;margin:-19px 0 0 -19px;border-radius:50%;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center}
-.ba-handle svg{width:20px;height:20px;color:#0F2E2B}
-.ba-tag{position:absolute;top:10px;font:500 10.5px var(--f-mono);letter-spacing:.09em;text-transform:uppercase;padding:4px 8px;border-radius:6px;background:rgba(0,0,0,.55);color:#fff;pointer-events:none}
-.ba-tag.b{left:10px}.ba-tag.a{right:10px}
-.ba input[type=range]{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:ew-resize}
 
 /* Message */
 .msg-tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
@@ -283,6 +275,10 @@ textarea#ownerMsg{min-height:220px;font-size:15px}
 .lb-img{position:relative;display:inline-block;max-width:100%;cursor:crosshair;line-height:0}
 .lb-img img{display:block;max-width:100%;max-height:74vh}
 .lb-img .marks circle{pointer-events:all;cursor:pointer}
+.lb-img.draw{touch-action:none;user-select:none;-webkit-user-select:none}
+.lb-img.draw img{-webkit-user-drag:none;pointer-events:none}
+.mark-tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.mark-tools .n{font:500 12px var(--f-mono);color:var(--ink-3);margin-left:auto}
 .lb-side{padding:20px;display:grid;gap:14px;align-content:start}
 .lb-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .lb-top h3{margin:0;font-family:var(--f-display);font-size:19px}
@@ -382,14 +378,14 @@ textarea#ownerMsg{min-height:220px;font-size:15px}
 .p-checks li{display:grid;grid-template-columns:20px minmax(0,1fr);gap:8px;font-size:14px;color:var(--p-ink)}
 .p-checks svg{width:18px;height:18px;margin-top:1px}
 .p-note{margin:14px 0 0;font-size:13.5px;color:var(--p-ink-2);background:var(--p-soft);border-radius:10px;padding:10px 14px}
-.p-xgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.p-xgrid{display:grid;grid-template-columns:minmax(0,1fr);gap:20px}
 .p-x{margin:0}
 .p-x-img{position:relative;background:#000000;border-radius:10px;overflow:hidden;line-height:0}
 .p-x-img img{display:block;width:100%;height:auto}
 .p-x figcaption,.p-pair figcaption{font-size:13px;color:var(--p-ink-2);margin-top:7px;line-height:1.45}
 .p-teeth{display:inline-block;font:500 11px var(--f-mono);color:var(--p-accent);background:var(--p-accent-soft);border-radius:5px;padding:1px 6px;margin-right:6px}
 .p-pair{margin:0 0 18px}
-.p-sbs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.p-sbs{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;align-items:start}
 .p-sbs figure{margin:0;position:relative}
 .p-sbs img{display:block;width:100%;height:auto;border-radius:10px}
 .p-sbs span{position:absolute;left:8px;top:8px;font:500 10px var(--f-mono);letter-spacing:.09em;text-transform:uppercase;background:rgba(0,0,0,.55);color:#FFFFFF;padding:3px 7px;border-radius:5px}
@@ -432,7 +428,6 @@ textarea#ownerMsg{min-height:220px;font-size:15px}
   .paper-wrap{padding:0}
   .paper{box-shadow:none;max-width:none;padding:0}
   .pblock{break-inside:avoid}
-  .ba input,.ba-handle{display:none}
 }
 
 /* ---------- Accueil : patients ---------- */
@@ -667,7 +662,7 @@ input[type=search]:focus{outline:none;border-color:var(--accent);box-shadow:0 0 
   <section class="card" aria-labelledby="h-ba">
     <div class="sec-head">
       <div><span class="eyebrow">Photos</span><h2 id="h-ba">Avant / après</h2>
-        <p>Le moment préféré des propriétaires : une paire de photos devient un comparateur à glisser dans le compte rendu.</p></div>
+        <p>Le moment préféré des propriétaires : les photos avant et après sont présentées côte à côte dans le compte rendu.</p></div>
       <button type="button" class="btn btn-sm" data-act="addPair"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Ajouter une paire</button>
     </div>
     <div class="pairs" id="pairs"></div>
@@ -1332,9 +1327,10 @@ function renderMeds(){
     ? rows
     : `<p class="hint">Aucun médicament. Les traitements ajoutés ici apparaîtront dans le compte rendu.</p>`;
 }
+const MARK_R = .055;
 function marksSVG(x, live){
-  const r = .055*Math.min(x.w, x.h), sw = r*.16;
-  return x.marks.map((m, i) => `<g><circle cx="${(m.x*x.w).toFixed(1)}" cy="${(m.y*x.h).toFixed(1)}" r="${r.toFixed(1)}" fill="none" stroke="#000000" stroke-opacity=".45" stroke-width="${(sw*2).toFixed(1)}"/><circle${live ? ` data-mi="${i}"` : ''} cx="${(m.x*x.w).toFixed(1)}" cy="${(m.y*x.h).toFixed(1)}" r="${r.toFixed(1)}" fill="#FFD23F" fill-opacity=".08" stroke="#FFD23F" stroke-width="${sw.toFixed(1)}"/></g>`).join('');
+  const k = Math.min(x.w, x.h), sw = MARK_R*k*.16;
+  return (x.marks || []).map((m, i) => { const r = (m.r || MARK_R)*k; return `<g><circle cx="${(m.x*x.w).toFixed(1)}" cy="${(m.y*x.h).toFixed(1)}" r="${r.toFixed(1)}" fill="none" stroke="#000000" stroke-opacity=".45" stroke-width="${(sw*2).toFixed(1)}"/><circle${live ? ` data-mi="${i}"` : ''} cx="${(m.x*x.w).toFixed(1)}" cy="${(m.y*x.h).toFixed(1)}" r="${r.toFixed(1)}" fill="#FFD23F" fill-opacity=".08" stroke="#FFD23F" stroke-width="${sw.toFixed(1)}"/></g>`; }).join('');
 }
 function renderXrays(){
   $('#xGrid').innerHTML = state.xrays.map((x, i) => `<div class="xcard">
@@ -1348,32 +1344,21 @@ function renderXrays(){
         <div class="xtools"><button type="button" class="btn btn-ghost btn-sm" data-act="openX" data-id="${x.id}">Régler et annoter</button><button type="button" class="btn btn-ghost btn-sm btn-danger" data-act="rmX" data-id="${x.id}">Retirer</button></div>
       </div></div>`).join('');
 }
-function baHTML(p, alt){
-  const r = p.before ? `${p.before.w} / ${p.before.h}` : '4 / 3';
-  return `<div class="ba" style="aspect-ratio:${r};--pos:50%">
-    <img src="${p.after.src}" alt="${esc(alt)} — après">
-    <div class="ba-before"><img src="${p.before.src}" alt="${esc(alt)} — avant"></div>
-    <div class="ba-handle"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7l-5 5 5 5M15 7l5 5-5 5"/></svg></span></div>
-    <span class="ba-tag b">Avant</span><span class="ba-tag a">Après</span>
-    <input type="range" min="0" max="100" value="50" aria-label="Comparer avant et après">
-  </div>`;
-}
 function renderPairs(){
   const slot = (p, which) => {
-    const img = p[which], lab = which === 'before' ? 'Avant' : 'Après';
-    return `<label class="slot${img ? ' filled' : ''}" data-pair="${p.id}" data-which="${which}">
+    const img = p[which], lab = which === 'before' ? 'Avant' : 'Après', ref = p.before || p.after;
+    return `<label class="slot${img ? ' filled' : ''}" data-pair="${p.id}" data-which="${which}"${ref ? ` style="aspect-ratio:${ref.w} / ${ref.h}"` : ''}>
       <span class="slot-tag">${lab}</span>
-      ${img ? `<img src="${img.src}" alt="Photo ${lab.toLowerCase()}"><button type="button" class="slot-x" data-act="clearSlot" data-id="${p.id}" data-which="${which}" aria-label="Retirer la photo ${lab.toLowerCase()}">×</button>` : `${ICON_UP}<span>Photo ${lab.toLowerCase()}</span>`}
+      ${img ? `<img src="${img.src}" alt="Photo ${lab.toLowerCase()}"><svg class="marks" viewBox="0 0 ${img.w} ${img.h}" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${marksSVG(img)}</svg><button type="button" class="slot-mark" data-act="markPhoto" data-id="${p.id}" data-which="${which}" aria-label="Entourer une lésion sur la photo ${lab.toLowerCase()}"><i></i>${(img.marks || []).length ? `Cercles (${img.marks.length})` : 'Entourer'}</button><button type="button" class="slot-x" data-act="clearSlot" data-id="${p.id}" data-which="${which}" aria-label="Retirer la photo ${lab.toLowerCase()}">×</button>` : `${ICON_UP}<span>Photo ${lab.toLowerCase()}</span>`}
       <input type="file" accept="image/*" class="vh" data-pair-file="${p.id}" data-which="${which}">
     </label>`;
   };
   $('#pairs').innerHTML = state.pairs.length ? state.pairs.map((p, i) => `<div class="pair">
-      <div class="pair-left">
-        <div class="pair-slots">${slot(p, 'before')}${slot(p, 'after')}</div>
+      <div class="pair-slots">${slot(p, 'before')}${slot(p, 'after')}</div>
+      <div class="pair-foot">
         <input type="text" data-pcap="${p.id}" value="${esc(p.caption)}" placeholder="Légende (ex. canine supérieure gauche)" aria-label="Légende de la paire ${i+1}">
-        <div><button type="button" class="btn btn-ghost btn-sm btn-danger" data-act="rmPair" data-id="${p.id}">Supprimer la paire</button></div>
+        <button type="button" class="btn btn-ghost btn-sm btn-danger" data-act="rmPair" data-id="${p.id}">Supprimer la paire</button>
       </div>
-      <div class="pair-right">${p.before && p.after ? baHTML(p, p.caption || 'Dents') : `<div class="pair-empty">Ajoutez une photo avant et une photo après pour obtenir le comparateur.</div>`}</div>
     </div>`).join('') : `<p class="hint">Aucune paire. Ajoutez-en une pour montrer le résultat du détartrage.</p>`;
 }
 /* =========================================================
@@ -1507,13 +1492,13 @@ function openXray(id){
   ui.lb = id;
   const i = state.xrays.indexOf(x);
   openModal(`<div class="lb" role="dialog" aria-modal="true" aria-labelledby="lbT">
-    <div class="lb-stage"><div class="lb-img" id="lbImg"><img id="lbPic" src="${x.src}" alt="Radiographie ${i+1}" style="filter:${cssFilter(x.adj)}"><svg class="marks" id="lbMarks" viewBox="0 0 ${x.w} ${x.h}" preserveAspectRatio="none">${marksSVG(x, true)}</svg></div></div>
+    <div class="lb-stage"><div class="lb-img draw" id="lbImg"><img id="lbPic" src="${x.src}" alt="Radiographie ${i+1}" style="filter:${cssFilter(x.adj)}"><svg class="marks" id="lbMarks" viewBox="0 0 ${x.w} ${x.h}" preserveAspectRatio="none">${marksSVG(x, true)}</svg></div></div>
     <div class="lb-side">
       <div class="lb-top"><h3 id="lbT">Radiographie R${i+1}</h3><button type="button" class="btn btn-ghost btn-icon" data-act="closeModal" aria-label="Fermer">×</button></div>
       <div class="range"><div><label for="lbB">Luminosité</label><output id="lbBo">${x.adj.b}</output></div><input type="range" id="lbB" min="-50" max="50" value="${x.adj.b}"></div>
       <div class="range"><div><label for="lbC">Contraste</label><output id="lbCo">${x.adj.c}</output></div><input type="range" id="lbC" min="-50" max="80" value="${x.adj.c}"></div>
       <label class="check"><input type="checkbox" id="lbI" ${x.adj.inv ? 'checked' : ''}> Inverser (négatif)</label>
-      <p class="hint">Touchez l'image pour entourer une lésion ; touchez un cercle pour le retirer.</p>
+      ${markToolsHTML(x)}
       <div class="field"><label for="lbCap">Légende</label><input type="text" id="lbCap" value="${esc(x.caption)}" placeholder="Ex. lésion de résorption sur 307"></div>
       <div class="field"><label for="lbTeeth">Dents concernées</label><input type="text" id="lbTeeth" value="${esc(x.teeth)}" placeholder="Ex. 307, 309"></div>
       <div class="lb-actions"><button type="button" class="btn btn-ghost btn-sm" data-act="resetAdj">Réinitialiser</button><button type="button" class="btn btn-primary" data-act="closeModal">Terminé</button></div>
@@ -1525,12 +1510,66 @@ function openXray(id){
   $('#lbI').addEventListener('change', () => { upd(); commit(); });
   $('#lbCap').addEventListener('input', e => { xr().caption = e.target.value; save(); });
   $('#lbTeeth').addEventListener('input', e => { xr().teeth = e.target.value; save(); });
-  $('#lbImg').addEventListener('click', e => {
-    const xx = xr(), mi = e.target.closest && e.target.closest('[data-mi]');
-    if (mi){ xx.marks.splice(+mi.dataset.mi, 1); }
-    else { const r = $('#lbImg').getBoundingClientRect(); xx.marks.push({x:Math.min(1, Math.max(0, (e.clientX - r.left)/r.width)), y:Math.min(1, Math.max(0, (e.clientY - r.top)/r.height))}); }
-    $('#lbMarks').innerHTML = marksSVG(xx, true); save();
+  bindMarks(xr);
+}
+// Entourer une lésion : toucher = cercle standard, glisser depuis le centre = cercle à la taille voulue,
+// toucher un cercle = le retirer.
+const markToolsHTML = x => `<p class="hint">Touchez l'image pour entourer une lésion, ou glissez depuis son centre pour régler la taille du cercle. Touchez un cercle pour le retirer.</p>
+      <div class="mark-tools"><button type="button" class="btn btn-ghost btn-sm" data-act="marksUndo">Annuler le dernier</button><button type="button" class="btn btn-ghost btn-sm" data-act="marksClear">Tout effacer</button><span class="n" id="lbMarkN">${markCount(x)}</span></div>`;
+const markCount = x => { const n = (x.marks || []).length; return n ? `${n} cercle${n > 1 ? 's' : ''}` : 'Aucun cercle'; };
+const lbTarget = () => {
+  if (!state) return null;
+  if (ui.lb) return state.xrays.find(r => r.id === ui.lb) || null;
+  if (ui.lbP){ const p = state.pairs.find(r => r.id === ui.lbP.id); return (p && p[ui.lbP.which]) || null; }
+  return null;
+};
+function drawMarks(){ const x = lbTarget(); if (!x) return; $('#lbMarks').innerHTML = marksSVG(x, true); $('#lbMarkN').textContent = markCount(x); }
+function bindMarks(get){
+  const box = $('#lbImg');
+  let st = null;
+  const pos = e => { const r = box.getBoundingClientRect(); return {x:Math.min(1, Math.max(0, (e.clientX - r.left)/r.width)), y:Math.min(1, Math.max(0, (e.clientY - r.top)/r.height)), r}; };
+  box.addEventListener('pointerdown', e => {
+    if (e.button) return;
+    const mi = e.target.closest && e.target.closest('[data-mi]');
+    st = {mi:mi ? +mi.dataset.mi : null, x0:e.clientX, y0:e.clientY, c:pos(e), moved:false};
+    box.setPointerCapture(e.pointerId); e.preventDefault();
   });
+  box.addEventListener('pointermove', e => {
+    if (!st) return;
+    const d = Math.hypot(e.clientX - st.x0, e.clientY - st.y0);
+    if (!st.moved && d < 8) return;
+    st.moved = true;
+    const x = get(); if (!x) return;
+    const r = Math.min(.45, Math.max(.02, d / Math.min(st.c.r.width, st.c.r.height)));
+    const prev = {...x, marks:[...(x.marks || []), {x:st.c.x, y:st.c.y, r}]};
+    $('#lbMarks').innerHTML = marksSVG(prev, true); st.r = r;
+  });
+  const end = e => {
+    if (!st) return; const s0 = st; st = null;
+    const x = get(); if (!x) return;
+    if (!x.marks) x.marks = [];
+    if (e.type === 'pointercancel'){ drawMarks(); return; }
+    if (s0.moved) x.marks.push({x:s0.c.x, y:s0.c.y, r:+s0.r.toFixed(4)});
+    else if (s0.mi != null) x.marks.splice(s0.mi, 1);
+    else x.marks.push({x:s0.c.x, y:s0.c.y});
+    drawMarks(); save();
+  };
+  box.addEventListener('pointerup', end); box.addEventListener('pointercancel', end);
+}
+function openPhoto(pid, which){
+  const p = state && state.pairs.find(r => r.id === pid), im = p && p[which]; if (!im) return;
+  if (!im.marks) im.marks = [];
+  ui.lbP = {id:pid, which};
+  const lab = which === 'before' ? 'avant' : 'après';
+  openModal(`<div class="lb" role="dialog" aria-modal="true" aria-labelledby="lbT">
+    <div class="lb-stage"><div class="lb-img draw" id="lbImg"><img src="${im.src}" alt="Photo ${lab}"><svg class="marks" id="lbMarks" viewBox="0 0 ${im.w} ${im.h}" preserveAspectRatio="none">${marksSVG(im, true)}</svg></div></div>
+    <div class="lb-side">
+      <div class="lb-top"><h3 id="lbT">Photo ${lab}</h3><button type="button" class="btn btn-ghost btn-icon" data-act="closeModal" aria-label="Fermer">×</button></div>
+      ${p.caption ? `<p style="margin:0">${esc(p.caption)}</p>` : ''}
+      ${markToolsHTML(im)}
+      <div class="lb-actions"><button type="button" class="btn btn-primary" data-act="closeModal">Terminé</button></div>
+    </div></div>`);
+  bindMarks(lbTarget);
 }
 
 async function offerFile(filename, blob){
@@ -2185,17 +2224,17 @@ function reportHTML(exp){
     const fig = x => `<figure class="p-x"><div class="p-x-img"><img src="${x.baked || x.src}" alt="Radiographie R${xNum(x)}"><svg class="marks" viewBox="0 0 ${x.w} ${x.h}" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">${marksSVG(x)}</svg></div>
       <figcaption><span class="p-teeth">R${xNum(x)}</span>${esc(x.caption || 'Radiographie')}</figcaption></figure>`;
     const h = `<div class="p-sec-h"><span class="p-eyebrow">Imagerie</span><h2>${freeX.length < s.xrays.length ? 'Autres radiographies' : 'Les radiographies'}</h2><p>La radio montre ce qui se cache sous la gencive : racines, os et lésions invisibles à l'œil nu.${freeX.some(x => x.marks.length) ? ' Les cercles jaunes signalent les zones importantes.' : ''}</p></div>`;
-    if (exp){ for (let i = 0; i < freeX.length; i += 2) blocks.push(`<section class="pblock">${i === 0 ? h : ''}<div class="p-xgrid">${freeX.slice(i, i + 2).map(fig).join('')}</div></section>`); }
+    if (exp) freeX.forEach((x, i) => blocks.push(`<section class="pblock">${i === 0 ? h : ''}<div class="p-xgrid">${fig(x)}</div></section>`));
     else blocks.push(`<section class="pblock">${h}<div class="p-xgrid">${freeX.map(fig).join('')}</div></section>`);
   }
 
   // Avant / après
   const pairs = s.pairs.filter(x => x.before && x.after);
   if (pairs.length){
-    const h = `<div class="p-sec-h"><span class="p-eyebrow">Avant / après</span><h2>Le résultat en images</h2>${exp ? '' : '<p>Faites glisser le curseur pour comparer.</p>'}</div>`;
-    const one = x => exp
-      ? `<figure class="p-pair"><div class="p-sbs"><figure><img src="${x.before.src}" alt=""><span>Avant</span></figure><figure><img src="${x.after.src}" alt=""><span>Après</span></figure></div>${x.caption ? `<figcaption>${esc(x.caption)}</figcaption>` : ''}</figure>`
-      : `<figure class="p-pair">${baHTML(x, x.caption || 'Dents')}${x.caption ? `<figcaption>${esc(x.caption)}</figcaption>` : ''}</figure>`;
+    const h = `<div class="p-sec-h"><span class="p-eyebrow">Avant / après</span><h2>Le résultat en images</h2>${pairs.some(x => (x.before.marks || []).length || (x.after.marks || []).length) ? '<p>Les cercles jaunes signalent les zones importantes.</p>' : ''}</div>`;
+    const alt = x => esc(x.caption || 'Dents');
+    const ov = im => (im.marks || []).length ? `<svg class="marks" viewBox="0 0 ${im.w} ${im.h}" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">${marksSVG(im)}</svg>` : '';
+    const one = x => `<figure class="p-pair"><div class="p-sbs"><figure><img src="${x.before.src}" alt="${alt(x)} — avant">${ov(x.before)}<span>Avant</span></figure><figure><img src="${x.after.src}" alt="${alt(x)} — après">${ov(x.after)}<span>Après</span></figure></div>${x.caption ? `<figcaption>${esc(x.caption)}</figcaption>` : ''}</figure>`;
     if (exp) pairs.forEach((x, i) => blocks.push(`<section class="pblock">${i === 0 ? h : ''}${one(x)}</section>`));
     else blocks.push(`<section class="pblock">${h}${pairs.map(one).join('')}</section>`);
   }
@@ -2275,8 +2314,9 @@ async function setLogo(file){
    ========================================================= */
 function closeModal(){
   const m = $('#modal'); if (m.hidden) return;
-  const wasX = ui.lb; m.hidden = true; m.innerHTML = ''; document.body.classList.remove('modal-open'); ui.lb = null;
+  const wasX = ui.lb, wasP = ui.lbP; m.hidden = true; m.innerHTML = ''; document.body.classList.remove('modal-open'); ui.lb = null; ui.lbP = null;
   if (wasX && state){ renderXrays(); renderInspector(); }
+  if (wasP && state) renderPairs();
 }
 function viewXray(id){
   const x = state && state.xrays.find(r => r.id === id); if (!x) return;
@@ -2457,6 +2497,9 @@ const ACTIONS = {
   newVisit: el => newVisit(el.dataset.pk),
   delReport: el => deleteReport(el.dataset.id),
   viewX: el => viewXray(el.dataset.id),
+  markPhoto: el => openPhoto(el.dataset.id, el.dataset.which),
+  marksUndo: () => { const x = lbTarget(); if (x && x.marks && x.marks.length){ x.marks.pop(); drawMarks(); save(); } },
+  marksClear: () => { const x = lbTarget(); if (x && x.marks && x.marks.length){ x.marks = []; drawMarks(); save(); } },
   toothX: () => { const i = $('#toothXFile'); if (i) i.click(); },
   confirmOk: () => { const cb = confirmCb; confirmCb = null; closeModal(); if (cb) cb(); },
   closeModal,
@@ -2525,7 +2568,6 @@ document.addEventListener('keydown', e => {
 document.addEventListener('input', e => {
   const t = e.target;
   if (t.id === 'search'){ ui.q = t.value; renderHome(); return; }
-  if (t.type === 'range' && t.closest('.ba')){ t.closest('.ba').style.setProperty('--pos', t.value + '%'); return; }
   if (t.dataset.bind){
     const [o, p] = bindRoot(t.dataset.bind.split('.'));
     let x = o; for (let i = 0; i < p.length - 1; i++) x = x[p[i]];
